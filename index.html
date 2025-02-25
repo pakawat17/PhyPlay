@@ -70,7 +70,7 @@
             background-color: gray;
             top: 200px;
             left: 150px;
-            cursor: pointer;
+            cursor: grab;
         }
 
         #button {
@@ -121,9 +121,11 @@
 
             // ฟังก์ชันการลากและปล่อย
             function makeDraggable(element) {
+                let offsetX, offsetY;
+
                 element.addEventListener("mousedown", function (e) {
-                    let offsetX = e.clientX - element.getBoundingClientRect().left;
-                    let offsetY = e.clientY - element.getBoundingClientRect().top;
+                    offsetX = e.clientX - element.getBoundingClientRect().left;
+                    offsetY = e.clientY - element.getBoundingClientRect().top;
 
                     element.classList.add("dragging");
 
