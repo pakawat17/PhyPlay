@@ -26,6 +26,7 @@
             border-radius: 8px;
             cursor: pointer;
             transition: 0.3s;
+            margin-top: 20px;
         }
 
         button:hover {
@@ -76,6 +77,7 @@
             height: 100px;
             top: 200px;
             left: 150px;
+            border-radius: 2px;
         }
 
         #button {
@@ -103,6 +105,13 @@
             content: "🔌"; /* สัญลักษณ์สายไฟ */
         }
 
+        /* วิธีการเฉลย */
+        #solution {
+            display: none;
+            margin-top: 20px;
+            font-size: 18px;
+            color: blue;
+        }
     </style>
 </head>
 <body>
@@ -112,6 +121,9 @@
     
     <!-- ปุ่มเริ่มวงจร -->
     <button onclick="checkConnection()">เริ่มวงจร</button>
+    
+    <!-- ปุ่มวิธีการเฉลย -->
+    <button onclick="showSolution()">วิธีการเฉลย</button>
     
     <!-- พื้นที่แสดงข้อความ -->
     <p id="message"></p>
@@ -123,6 +135,14 @@
         <div id="button" class="component"></div>
     </div>
 
+    <!-- วิธีการเฉลย -->
+    <div id="solution">
+        <p>วิธีการเฉลย:</p>
+        <p>1. ลากแบตเตอรี่ไปวางที่ตำแหน่งของแบตเตอรี่</p>
+        <p>2. ลากสายไฟจากแบตเตอรี่ไปเชื่อมต่อกับหลอดไฟ</p>
+        <p>3. กดปุ่ม "เริ่มวงจร" หากการเชื่อมต่อถูกต้อง ไฟจะติดขึ้น</p>
+    </div>
+
     <script>
         let isConnected = false;
         let wireConnected = false;
@@ -132,59 +152,52 @@
             document.getElementById("message").innerText = message;
         }
 
-        document.addEventListener("DOMContentLoaded", function () {
-            let button = document.getElementById("button");
-            let bulb = document.getElementById("bulb");
-            let battery = document.getElementById("battery");
-            let wire = document.getElementById("wire");
+        // ฟังก์ชันแสดงวิธีการเฉลย
+        function showSolution() {
+            document.getElementById("solution").style.display = "block";
+        }
 
-            // ฟังก์ชันการลากและปล่อย
-            function makeDraggable(element) {
-                let offsetX, offsetY;
+        // ฟังก์ชันการลากและปล่อย
+        function makeDraggable(element) {
+            let offsetX, offsetY;
 
-                element.addEventListener("mousedown", function (e) {
-                    offsetX = e.clientX - element.getBoundingClientRect().left;
-                    offsetY = e.clientY - element.getBoundingClientRect().top;
+            element.addEventListener("mousedown", function (e) {
+                offsetX = e.clientX - element.getBoundingClientRect().left;
+                offsetY = e.clientY - element.getBoundingClientRect().top;
 
-                    element.classList.add("dragging");
+                element.classList.add("dragging");
 
-                    function dragMove(e) {
-                        element.style.left = `${e.clientX - offsetX}px`;
-                        element.style.top = `${e.clientY - offsetY}px`;
+                function dragMove(e) {
+                    element.style.left = `${e.clientX - offsetX}px`;
+                    element.style.top = `${e.clientY - offsetY}px`;
+                }
+
+                function dragEnd() {
+                    document.removeEventListener("mousemove", dragMove);
+                    document.removeEventListener("mouseup", dragEnd);
+                    element.classList.remove("dragging");
+
+                    // เช็คการเชื่อมต่อสายไฟกับแบตเตอรี่
+                    if (isNearConnection(element, battery)) {
+                        wireConnected = true;
+                    } else {
+                        wireConnected = false;
                     }
+                }
 
-                    function dragEnd() {
-                        document.removeEventListener("mousemove", dragMove);
-                        document.removeEventListener("mouseup", dragEnd);
-                        element.classList.remove("dragging");
+                document.addEventListener("mousemove", dragMove);
+                document.addEventListener("mouseup", dragEnd);
+            });
+        }
 
-                        // เช็คการเชื่อมต่อสายไฟกับแบตเตอรี่
-                        if (isNearConnection(element, battery)) {
-                            wireConnected = true;
-                        } else {
-                            wireConnected = false;
-                        }
-                    }
+        // ฟังก์ชันตรวจสอบว่าองค์ประกอบใกล้กันพอที่จะเชื่อมต่อได้
+        function isNearConnection(element1, element2) {
+            let rect1 = element1.getBoundingClientRect();
+            let rect2 = element2.getBoundingClientRect();
 
-                    document.addEventListener("mousemove", dragMove);
-                    document.addEventListener("mouseup", dragEnd);
-                });
-            }
-
-            // ฟังก์ชันตรวจสอบว่าองค์ประกอบใกล้กันพอที่จะเชื่อมต่อได้
-            function isNearConnection(element1, element2) {
-                let rect1 = element1.getBoundingClientRect();
-                let rect2 = element2.getBoundingClientRect();
-
-                return rect1.right > rect2.left && rect1.left < rect2.right &&
-                    rect1.bottom > rect2.top && rect1.top < rect2.bottom;
-            }
-
-            // ทำให้แบตเตอรี่, หลอดไฟ และสายไฟสามารถลากได้
-            makeDraggable(battery);
-            makeDraggable(bulb);
-            makeDraggable(wire);
-        });
+            return rect1.right > rect2.left && rect1.left < rect2.right &&
+                rect1.bottom > rect2.top && rect1.top < rect2.bottom;
+        }
 
         // ฟังก์ชันตรวจสอบการเชื่อมต่อเมื่อคลิกปุ่ม "เริ่มวงจร"
         function checkConnection() {
@@ -196,6 +209,17 @@
                 showMessage("วงจรไม่สมบูรณ์! ลองใหม่.");
             }
         }
+
+        document.addEventListener("DOMContentLoaded", function () {
+            let battery = document.getElementById("battery");
+            let bulb = document.getElementById("bulb");
+            let wire = document.getElementById("wire");
+
+            // ทำให้แบตเตอรี่, หลอดไฟ และสายไฟสามารถลากได้
+            makeDraggable(battery);
+            makeDraggable(bulb);
+            makeDraggable(wire);
+        });
     </script>
 </body>
 </html>
