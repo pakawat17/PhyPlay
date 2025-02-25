@@ -146,6 +146,8 @@
     <script>
         let isConnected = false;
         let wireConnected = false;
+        let batteryConnected = false;
+        let bulbConnected = false;
 
         // ฟังก์ชันการแสดงข้อความเมื่อกดปุ่ม
         function showMessage(message) {
@@ -177,11 +179,21 @@
                     document.removeEventListener("mouseup", dragEnd);
                     element.classList.remove("dragging");
 
-                    // เช็คการเชื่อมต่อสายไฟกับแบตเตอรี่
-                    if (isNearConnection(element, battery)) {
-                        wireConnected = true;
-                    } else {
-                        wireConnected = false;
+                    // ตรวจสอบการเชื่อมต่อระหว่างอุปกรณ์
+                    if (element.id === "wire") {
+                        if (isNearConnection(element, document.getElementById("battery")) && isNearConnection(element, document.getElementById("bulb"))) {
+                            wireConnected = true;
+                        } else {
+                            wireConnected = false;
+                        }
+                    }
+
+                    if (element.id === "battery") {
+                        batteryConnected = isNearConnection(element, document.getElementById("wire"));
+                    }
+
+                    if (element.id === "bulb") {
+                        bulbConnected = isNearConnection(element, document.getElementById("wire"));
                     }
                 }
 
@@ -201,7 +213,7 @@
 
         // ฟังก์ชันตรวจสอบการเชื่อมต่อเมื่อคลิกปุ่ม "เริ่มวงจร"
         function checkConnection() {
-            if (wireConnected) {
+            if (wireConnected && batteryConnected && bulbConnected) {
                 document.getElementById("bulb").style.backgroundColor = "orange"; // ไฟติด
                 showMessage("วงจรเชื่อมต่อสำเร็จ! ไฟติดแล้ว.");
             } else {
